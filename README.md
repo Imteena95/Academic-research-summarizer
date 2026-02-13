@@ -1,5 +1,4 @@
 
-Good catch! You need to update your README to reflect that you're using **Ollama** (local AI) instead of Claude API. Here's the corrected version:
 
 ---
 
@@ -211,5 +210,3 @@ This project is open source and available for educational and research use.
 - arXiv integration via [arxiv.py](https://github.com/lukasschwab/arxiv.py)
 
 ---
-
-**Copy this entire corrected README and replace your current one!**
