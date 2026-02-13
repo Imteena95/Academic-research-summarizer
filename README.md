@@ -1,196 +1,215 @@
+
+Good catch! You need to update your README to reflect that you're using **Ollama** (local AI) instead of Claude API. Here's the corrected version:
+
+---
+
 # Academic Paper Summarizer
 
-A full-stack application that allows users to upload academic papers in PDF format and receive AI-powered summaries using Claude API.
+A full-stack application that allows users to upload academic papers in PDF format and receive AI-powered summaries using **Ollama (orca-mini model)** for local, privacy-friendly summarization.
 
 ## Features
 
 - 📄 **PDF Upload**: Drag-and-drop or click to upload PDF files
-- 🤖 **AI Summarization**: Uses Claude 3.5 Sonnet for intelligent summarization
-- 📊 **Flexible Summary Lengths**: Choose between short, medium, or long summaries
-- 🎨 **Modern UI**: Beautiful, responsive web interface
-- ⚡ **Fast Processing**: Efficient text extraction and API integration
-- 📋 **Copy to Clipboard**: Easily copy summaries for use elsewhere
+- 🤖 **Local AI Summarization**: Uses Ollama with orca-mini model (no API keys needed, runs completely offline)
+- 📊 **Multi-Level Summaries**: Choose between ELI5, Technical, or Expert level summaries
+- 📑 **Section-Aware Parsing**: Automatically detects and summarizes paper sections (abstract, introduction, methodology, results, conclusion)
+- 🔍 **arXiv Integration**: Fetch papers directly using arXiv IDs
+- 🔗 **Related Work Suggestions**: Finds related papers based on keywords
+- 🎨 **Modern UI**: Beautiful, responsive web interface with tabbed navigation
+- ⚡ **Fast Processing**: Efficient text extraction and local AI processing
 
 ## Project Structure
 
 ```
 Academic-research-summarizer/
-├── main.py                 # FastAPI backend application
-├── index.html             # Frontend HTML/CSS/JavaScript
-├── requirements.txt       # Python dependencies
-├── .env.example          # Environment variables template
-└── README.md             # This file
+├── main_advanced.py         # FastAPI backend with Ollama integration
+├── index.html               # Frontend HTML/CSS/JavaScript
+├── requirements.txt         # Python dependencies
+├── .env.example             # Environment variables template
+└── README.md                # This file
 ```
 
 ## Prerequisites
 
 - Python 3.8 or higher
 - pip (Python package manager)
-- Anthropic API key (get it from https://console.anthropic.com)
+- **Ollama** (local AI server) - Download from [https://ollama.ai](https://ollama.ai)
 
 ## Installation
 
 ### 1. Clone or navigate to the project directory
-
 ```bash
 cd Academic-research-summarizer
 ```
 
 ### 2. Create a virtual environment (recommended)
-
 ```bash
 # On Windows
-python -m venv venv
-venv\Scripts\activate
+python -m venv venv311
+venv311\Scripts\activate
 
 # On macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv venv311
+source venv311/bin/activate
 ```
 
 ### 3. Install dependencies
-
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
+### 4. Install and set up Ollama
+```bash
+# Download Ollama from https://ollama.ai
+# Then pull the orca-mini model
+ollama pull orca-mini
+```
 
-Create a `.env` file in the project root:
-
+### 5. Environment variables (optional)
+Create a `.env` file if you need to customize settings:
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and add your Anthropic API key:
-
-```
-ANTHROPIC_API_KEY=your_actual_api_key_here
-```
-
 ## Running the Application
 
-### 1. Start the FastAPI backend
-
+### 1. Start Ollama (in a separate terminal)
 ```bash
-python main.py
+ollama serve
 ```
+Or ensure Ollama is running in the background.
 
-The API will be available at `http://localhost:8000`
-
-### 2. Open the frontend
-
-Open `index.html` in your web browser or serve it with a local server:
-
+### 2. Start the FastAPI backend
 ```bash
-# Using Python 3
-python -m http.server 8001
-
-# Then visit http://localhost:8001
+python main_advanced.py
 ```
+The API will be available at `http://localhost:8001`
 
-Or simply double-click `index.html` to open it directly in your browser.
+### 3. Open the frontend
+Simply double-click `index.html` in your file explorer, or serve it with:
+```bash
+# Using Python
+python -m http.server 8000
+# Then visit http://localhost:8000
+```
 
 ## Usage
 
-1. **Upload a PDF**: Click the upload area or drag and drop a PDF file
-2. **Select Summary Length**: Choose between Short, Medium, or Long
-3. **Click Summarize**: The backend will process the PDF and generate a summary
-4. **Copy Summary**: Use the copy button to copy the summary to your clipboard
+1. **Upload a Paper**: Click the upload area or drag and drop a PDF file
+2. **Or Fetch from arXiv**: Enter an arXiv ID (e.g., 2301.12345)
+3. **Select Summary Level**: Choose between ELI5, Technical, or Expert
+4. **Customize Options**: Toggle figures/tables and methodology recreation
+5. **Click Summarize**: The backend processes the PDF and generates a section-aware summary
+6. **Find Related Work**: Click "Find Related Papers" to discover similar research
 
 ## API Endpoints
 
-### POST `/upload-and-summarize`
-
-Upload a PDF and get a summary.
-
-**Parameters:**
-- `file` (FormData): PDF file to upload
-- `summary_length` (query): "short", "medium", or "long" (default: "medium")
+### `POST /upload-paper`
+Upload a PDF file for processing.
 
 **Response:**
 ```json
 {
   "status": "success",
-  "filename": "paper.pdf",
-  "text_length": 5000,
-  "summary": "The paper discusses..."
+  "paper_id": "filename",
+  "title": "Paper Title",
+  "authors": ["Author 1", "Author 2"],
+  "sections": ["abstract", "introduction", "methodology"],
+  "page_count": 10
 }
 ```
 
-### GET `/health`
+### `POST /arxiv-paper?arxiv_id=2301.12345`
+Fetch and process a paper from arXiv.
 
-Health check endpoint.
+### `POST /summarize`
+Generate a multi-level summary.
 
-**Response:**
+**Request Body:**
 ```json
 {
-  "status": "healthy"
+  "paper_id": "filename",
+  "summary_level": "technical",
+  "include_figures": true,
+  "include_methodology": true
 }
 ```
+
+### `GET /related-work/{paper_id}`
+Find related papers based on keywords.
+
+### `GET /health`
+Health check endpoint.
 
 ## How It Works
 
-1. **PDF Upload**: User uploads a PDF file through the web interface
+1. **PDF Upload/arXiv Fetch**: User provides a PDF or arXiv ID
 2. **Text Extraction**: PyPDF2 extracts all text from the PDF
-3. **Summarization**: Claude API processes the extracted text and generates a summary
-4. **Display**: Summary is displayed in the web interface
-5. **Cleanup**: Temporary files are automatically deleted
+3. **Section Parsing**: Regex patterns detect paper sections (abstract, introduction, methodology, etc.)
+4. **Local AI Summarization**: Ollama (orca-mini) generates summaries at different complexity levels
+5. **Display Results**: Summaries are shown in organized boxes by section
+6. **Related Work**: Keyword extraction and arXiv search for similar papers
 
 ## Dependencies
 
 - **FastAPI**: Modern web framework for building APIs
 - **Uvicorn**: ASGI server for running FastAPI
 - **PyPDF2**: PDF text extraction
-- **Anthropic**: Claude API client
-- **python-dotenv**: Environment variable management
+- **arxiv**: arXiv API client for fetching papers
+- **Requests**: HTTP requests for Ollama API
 - **python-multipart**: File upload handling
+- **python-dotenv**: Environment variable management
 
-## Error Handling
+## Why Ollama?
 
-The application includes comprehensive error handling for:
-- Invalid file types (non-PDF files)
-- Empty PDFs or PDFs with no extractable text
-- API errors
-- File system errors
-
-## Limitations
-
-- Maximum file size depends on your system's available memory
-- Very large PDFs may take longer to process
-- API rate limits apply based on your Anthropic account
+This project uses **Ollama** instead of cloud-based APIs like Claude because:
+- 🔒 **Privacy**: All processing happens locally - your papers never leave your computer
+- 💰 **Free**: No API costs or usage limits
+- 🚀 **Offline**: Works without internet connection
+- 📚 **Academic Focus**: orca-mini model performs well on research content
 
 ## Troubleshooting
 
-### "ANTHROPIC_API_KEY not found"
-- Ensure you've created a `.env` file with your API key
-- Verify the key is correct and has proper permissions
+### "Ollama not found"
+- Ensure Ollama is installed from [https://ollama.ai](https://ollama.ai)
+- Run `ollama serve` to start the service
+- Pull the model: `ollama pull orca-mini`
+
+### "Port 8001 already in use"
+- Change the port in `main_advanced.py` (last line)
+- Or kill the existing process using the port
 
 ### "Only PDF files are allowed"
 - Make sure you're uploading a valid PDF file
-- Check that the file extension is `.pdf`
 
 ### "Could not extract text from PDF"
 - The PDF may be image-based (scanned document)
 - Try a different PDF with selectable text
 
-### CORS errors
-- The backend is configured to accept requests from any origin
-- If issues persist, check that the backend is running on `http://localhost:8000`
+### Module not found errors
+- Ensure virtual environment is activated
+- Run `pip install -r requirements.txt`
 
 ## Future Enhancements
 
-- Support for multiple file formats (DOCX, TXT, etc.)
-- Batch processing for multiple PDFs
-- Summary export to PDF or Word
-- Custom summarization prompts
-- User authentication and history
-- Database integration for storing summaries
+- [ ] Support for more AI models (Llama 2, Mistral)
+- [ ] Batch processing multiple PDFs
+- [ ] Summary export to PDF/Word
+- [ ] Citation extraction and formatting
+- [ ] User accounts and history
+- [ ] Full-text search across papers
+- [ ] Integration with more academic sources (IEEE, ACM)
 
 ## License
 
-This project is open source and available for educational and commercial use.
+This project is open source and available for educational and research use.
 
-## Support
+## Acknowledgments
 
-For issues or questions, please check the error messages in the browser console and terminal output for debugging information.
+- Built with [FastAPI](https://fastapi.tiangolo.com/)
+- Local AI powered by [Ollama](https://ollama.ai/) and [orca-mini](https://ollama.ai/library/orca-mini)
+- arXiv integration via [arxiv.py](https://github.com/lukasschwab/arxiv.py)
+
+---
+
+**Copy this entire corrected README and replace your current one!**
