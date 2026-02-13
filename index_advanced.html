@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Research Paper Summarizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .summary-box {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .summary-box p {
+            color: #333;
+            line-height: 1.8;
+        }
+
+        .error {
+            display: none;
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            display: none;
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .paper-info {
+            background: #f0f2ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .paper-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .paper-info p {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .related-papers {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .paper-card {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .paper-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .paper-card p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .related-papers {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Advanced Research Paper Summarizer</h1>
+            <p>Section-aware parsing • Multi-level summaries • arXiv integration</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('upload', this)">📤 Upload Paper</button>
+            <button class="tab-btn" onclick="switchTab('arxiv', this)">🔍 arXiv Search</button>
+            <button class="tab-btn" onclick="switchTab('summarize', this)">📝 Summarize</button>
+            <button class="tab-btn" onclick="switchTab('related', this)">🔗 Related Work</button>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content active">
+            <div class="error" id="uploadError"></div>
+            <div class="success" id="uploadSuccess"></div>
+
+            <div class="upload-area" id="uploadArea">
+                <p style="font-size: 1.2em; margin-bottom: 10px;">📁 Click or drag PDF here</p>
+                <p style="color: #666;">Supports research papers from any source</p>
+                <input type="file" id="pdfFile" accept=".pdf" hidden />
+            </div>
+
+            <div id="uploadedPaperInfo" style="display: none; margin-top: 20px;">
+                <div class="paper-info" id="paperInfo"></div>
+            </div>
+        </div>
+
+        <!-- arXiv Tab -->
+        <div id="arxiv" class="tab-content">
+            <div class="error" id="arxivError"></div>
+            <div class="success" id="arxivSuccess"></div>
+
+            <div class="form-group">
+                <label>arXiv ID (e.g., 2301.12345)</label>
+                <input type="text" id="arxivId" placeholder="Enter arXiv ID">
+            </div>
+
+            <button class="btn-primary" onclick="fetchArxiv()">Fetch from arXiv</button>
+
+            <div id="arxivPaperInfo" style="display: none; margin-top: 20px;">
+                <div class="paper-info" id="arxivInfo"></div>
+            </div>
+        </div>
+
+        <!-- Summarize Tab -->
+        <div id="summarize" class="tab-content">
+            <div class="error" id="summarizeError"></div>
+
+            <div class="form-group">
+                <label>Summary Level</label>
+                <select id="summaryLevel">
+                    <option value="eli5">ELI5 (Explain Like I'm 5)</option>
+                    <option value="technical" selected>Technical</option>
+                    <option value="expert">Expert Level</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="includeFigures" checked>
+                    Include Figures & Tables
+                </label>
+                <label>
+                    <input type="checkbox" id="includeMethodology" checked>
+                    Include Methodology Recreation
+                </label>
+            </div>
+
+            <button class="btn-primary" onclick="summarizePaper()">Generate Summary</button>
+
+            <div class="loading" id="summarizeLoading">
+                <div class="spinner"></div>
+                <div>Processing paper...</div>
+            </div>
+
+            <div id="summaryResults" class="result-section"></div>
+        </div>
+
+        <!-- Related Work Tab -->
+        <div id="related" class="tab-content">
+            <div class="error" id="relatedError"></div>
+
+            <button class="btn-primary" onclick="getRelatedWork()">Find Related Papers</button>
+
+            <div class="loading" id="relatedLoading">
+                <div class="spinner"></div>
+                <div>Searching for related papers...</div>
+            </div>
+
+            <div id="relatedResults" class="result-section"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPaperId = null;
+
+        // Tab switching
+        function switchTab(tabName, button) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            button.classList.add('active');
+        }
+
+        // Upload functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const pdfFile = document.getElementById('pdfFile');
+
+        uploadArea.addEventListener('click', () => pdfFile.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length > 0) {
+                pdfFile.files = e.dataTransfer.files;
+                uploadPaper();
+            }
+        });
+
+        pdfFile.addEventListener('change', uploadPaper);
+
+        async function uploadPaper() {
+            const file = pdfFile.files[0];
+            if (!file) return;
+
+            showSuccess('uploadSuccess', `Uploading: ${file.name}...`);
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:8001/upload-paper', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showError('uploadError', error.detail || 'Upload failed');
+                    return;
+                }
+
+                const data = await response.json();
+                currentPaperId = data.paper_id;
+
+                const info = `
+                    <h3>${data.title || 'Untitled'}</h3>
+                    <p><strong>Authors:</strong> ${data.authors?.join(', ') || 'Unknown'}</p>
+                    <p><strong>Sections Found:</strong> ${data.sections?.join(', ') || 'None'}</p>
+                    <p><strong>Pages:</strong> ${data.page_count || 'N/A'}</p>
+                `;
+
+                document.getElementById('paperInfo').innerHTML = info;
+                document.getElementById('uploadedPaperInfo').style.display = 'block';
+                showSuccess('uploadSuccess', 'Paper uploaded and parsed successfully!');
+            } catch (error) {
+                showError('uploadError', error.message);
+                console.error('Upload error:', error);
+            }
+        }
+
+        async function fetchArxiv() {
+            const arxivId = document.getElementById('arxivId').value.trim();
+            if (!arxivId) {
+                showError('arxivError', 'Please enter an arXiv ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8001/arxiv-paper?arxiv_id=${arxivId}`);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showError('arxivError', error.detail);
+                    return;
+                }
+
+                const data = await response.json();
+                currentPaperId = data.paper_id;
+
+                const info = `
+                    <h3>${data.title}</h3>
+                    <p><strong>Authors:</strong> ${data.authors.join(', ')}</p>
+                    <p><strong>Abstract:</strong> ${data.abstract.substring(0, 200)}...</p>
+                    <p><strong>Sections Found:</strong> ${data.sections.join(', ')}</p>
+                `;
+
+                document.getElementById('arxivInfo').innerHTML = info;
+                document.getElementById('arxivPaperInfo').style.display = 'block';
+                showSuccess('arxivSuccess', 'Paper fetched from arXiv successfully!');
+            } catch (error) {
+                showError('arxivError', error.message);
+            }
+        }
+
+        async function summarizePaper() {
+            if (!currentPaperId) {
+                showError('summarizeError', 'Please upload or fetch a paper first');
+                return;
+            }
+
+            const summaryLevel = document.getElementById('summaryLevel').value;
+            const includeFigures = document.getElementById('includeFigures').checked;
+            const includeMethodology = document.getElementById('includeMethodology').checked;
+
+            document.getElementById('summarizeLoading').style.display = 'block';
+
+            try {
+                const response = await fetch('http://localhost:8001/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        paper_id: currentPaperId,
+                        summary_level: summaryLevel,
+                        include_figures: includeFigures,
+                        include_methodology: includeMethodology
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showError('summarizeError', error.detail);
+                    return;
+                }
+
+                const data = await response.json();
+                displaySummary(data);
+                showSuccess('summarizeError', 'Summary generated successfully!');
+            } catch (error) {
+                showError('summarizeError', error.message);
+            } finally {
+                document.getElementById('summarizeLoading').style.display = 'none';
+            }
+        }
+
+        function displaySummary(data) {
+            let html = '<h2>Summary Results</h2>';
+
+            if (data.summaries) {
+                for (const [section, summary] of Object.entries(data.summaries)) {
+                    html += `
+                        <div class="summary-box">
+                            <h3>${section.charAt(0).toUpperCase() + section.slice(1)}</h3>
+                            <p>${summary}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            if (data.figures && data.figures.length > 0) {
+                html += `
+                    <div class="summary-box">
+                        <h3>Figures & Tables</h3>
+                        <p>${data.figures.join(', ')}</p>
+                    </div>
+                `;
+            }
+
+            if (data.methodology) {
+                html += `
+                    <div class="summary-box">
+                        <h3>Methodology Recreation</h3>
+                        <p>${data.methodology}</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('summaryResults').innerHTML = html;
+            document.getElementById('summaryResults').classList.add('show');
+        }
+
+        async function getRelatedWork() {
+            if (!currentPaperId) {
+                showError('relatedError', 'Please upload or fetch a paper first');
+                return;
+            }
+
+            document.getElementById('relatedLoading').style.display = 'block';
+
+            try {
+                const response = await fetch(`http://localhost:8001/related-work/${currentPaperId}`);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showError('relatedError', error.detail);
+                    return;
+                }
+
+                const data = await response.json();
+                displayRelatedWork(data.related_papers);
+                showSuccess('relatedError', 'Related papers found!');
+            } catch (error) {
+                showError('relatedError', error.message);
+            } finally {
+                document.getElementById('relatedLoading').style.display = 'none';
+            }
+        }
+
+        function displayRelatedWork(papers) {
+            let html = '<h2>Related Papers</h2><div class="related-papers">';
+
+            if (papers && papers.length > 0) {
+                papers.forEach(paper => {
+                    html += `
+                        <div class="paper-card">
+                            <h4>${paper.title || 'Untitled'}</h4>
+                            <p><strong>Authors:</strong> ${paper.authors?.join(', ') || 'Unknown'}</p>
+                            <p><strong>arXiv ID:</strong> ${paper.arxiv_id || 'N/A'}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<p>No related papers found.</p>';
+            }
+
+            html += '</div>';
+            document.getElementById('relatedResults').innerHTML = html;
+            document.getElementById('relatedResults').classList.add('show');
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.classList.add('show');
+                setTimeout(() => element.classList.remove('show'), 5000);
+            }
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.classList.add('show');
+                setTimeout(() => element.classList.remove('show'), 5000);
+            }
+        }
+    </script>
+</body>
+</html>
